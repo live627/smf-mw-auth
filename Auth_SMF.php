@@ -33,13 +33,13 @@ $wgGroupPermissions['*']['edit'] = false; // MediaWiki Setting
 #$wgCachePages = false;
 
 # SMF Authentication
-# To get started you only need to configure wgSMFPath. 
+# To get started you only need to configure wgSMFPath.
 # The rest of the settings are optional for advanced features.
 
 # Relative path to the forum directory from the wiki
 # Do not put a trailing /
 # Example: /public_html/forum and /public_html/wiki -> ../forum
-$wgSMFPath = "../forum"; 
+$wgSMFPath = "../forum";
 
 # Use SMF's login system to automatically log you in/out of the wiki
 # This works best if you are using SMF database sessions (default).
@@ -82,7 +82,7 @@ if (!defined('SMF_IN_WIKI'))
 
 error_reporting(E_ALL); // Debug
 
-if(file_exists("$wgSMFPath/Settings.php"))
+if (file_exists("$wgSMFPath/Settings.php"))
 	require_once("$wgSMFPath/Settings.php");
 else
 	die('Check to make sure $wgSMFPath is correctly set in LocalSettings.php!');
@@ -102,7 +102,7 @@ $smf_settings['db_prefix'] = $db_prefix;
  * @return bool
  * @public
  */
-function AutoAuthenticateSMF ($initial_user_data, &$user)
+function AutoAuthenticateSMF($initial_user_data, &$user)
 {
 	global $wgAuth, $smf_settings, $modSettings, $smf_member_id, $user_settings, $ID_MEMBER;
 
@@ -125,13 +125,13 @@ function AutoAuthenticateSMF ($initial_user_data, &$user)
 	{
 		if (empty($_SESSION['user_settings']) || empty($_SESSION['user_settings_time']) || time() > $_SESSION['user_settings_time'] + 900)
 		{
-			$request = $wgAuth->query("		
-				SELECT id_member, member_name, email_address, real_name,
-					is_activated, passwd, password_salt,
-					id_group, id_post_group, additional_groups
+			$request = $wgAuth->query("
+				SELECT ID_MEMBER, memberName, emailAddress, realName,
+					isActivated, passwd, passwordSalt,
+					ID_GROUP, ID_POST_GROUP, additionalGroups
 				FROM $smf_settings[db_prefix]members
-				WHERE id_member = '{$ID_MEMBER}'
-					AND is_activated = 1
+				WHERE ID_MEMBER = '{$ID_MEMBER}'
+					AND isActivated = 1
 				LIMIT 1");
 
 			$user_settings = mysql_fetch_assoc($request);
@@ -152,17 +152,17 @@ function AutoAuthenticateSMF ($initial_user_data, &$user)
 				$check = false;
 
 			// Wrong password or not activated - either way, you're going nowhere.
-			$ID_MEMBER = $check && ($user_settings['is_activated'] == 1 || $user_settings['is_activated'] == 11) ? $user_settings['id_member'] : 0;
+			$ID_MEMBER = $check && ($user_settings['isActivated'] == 1 || $user_settings['isActivated'] == 11) ? $user_settings['ID_MEMBER'] : 0;
 		}
 		else
 			$ID_MEMBER = 0;
 
 		// This just simplifies things further on.
-		$user_settings['smf_groups'] = array_merge(array($user_settings['id_group'], $user_settings['id_post_group']), explode(',', $user_settings['additional_groups']));
+		$user_settings['smf_groups'] = array_merge(array($user_settings['ID_GROUP'], $user_settings['ID_POST_GROUP']), explode(',', $user_settings['additionalGroups']));
 	}
 
 	// Log out guests or members with invalid cookie passwords.
-	if($ID_MEMBER == 0)
+	if ($ID_MEMBER == 0)
 	{
 		// A bug seems to exist in isLoggedIn when it calls getId.
 		// getId appears to try to load user data, which may not exist at this point.
@@ -171,27 +171,25 @@ function AutoAuthenticateSMF ($initial_user_data, &$user)
 		return false;
 	}
 
-	// Do we know the SMF member id yet?
+	// Do we know the SMF member ID yet?
 	if (empty($smf_member_id))
 		$smf_member_id = $user->getOption('smf_member_id');
 
 	// If the username has an underscore or space accept the first registered user.
-	if(empty($smf_member_id) && (strpos($user_settings['member_name'], ' ') !== false || strpos($user_settings['member_name'], '_') !== false))
+	if (empty($smf_member_id) && (strpos($user_settings['memberName'], ' ') !== false || strpos($user_settings['memberName'], '_') !== false))
 	{
 		$request = $wgAuth->query("
-			SELECT id_member 
+			SELECT ID_MEMBER
 			FROM $smf_settings[db_prefix]members
-			WHERE member_name = '" . $user_settings['member_name'] . "'
-			ORDER BY date_registered ASC
-			LIMIT 1");
+			WHERE memberName = '" . $user_settings['memberName'] . "'");
 
-		list($id) = mysql_fetch_row($request);
+		list ($ID) = mysql_fetch_row($request);
 		mysql_free_result($request);
 
 		// Sorry your name was taken already!
-		if($id != $ID_MEMBER)
+		if ($ID != $ID_MEMBER)
 		{
-			if($user->isLoggedIn())
+			if ($user->isLoggedIn())
 				$user->logout();
 			return true;
 		}
@@ -200,19 +198,19 @@ function AutoAuthenticateSMF ($initial_user_data, &$user)
 	// Lastly check to see if they are not banned and allowed to login
 	if (!$wgAuth->isNotBanned($ID_MEMBER) || !$wgAuth->canLogin())
 	{
-		if($user->isLoggedIn())
+		if ($user->isLoggedIn())
 			$user->logout();
 		return true;
 	}
 
 	// Convert to wiki standards
-	$username = ucfirst(str_replace('_', '\'', $user_settings['member_name']));
+	$username = ucfirst(str_replace('_', '\'', $user_settings['memberName']));
 	// Wiki doesn't allow [] and SMF does, SMF doesn't allow =" and Wiki does.
 	// We do it like this so we can reverse it to find the original name if needed.
 	$username = strtr($username, array('[' => '=', ']' => '"'));
 
 	// Only poll the database if no session or username mismatch.
-	if(!($user->isLoggedIn() && $user->getName() == $username))
+	if (!($user->isLoggedIn() && $user->getName() == $username))
 	{
        	$user->setId($user->idFromName($username));
 
@@ -221,11 +219,11 @@ function AutoAuthenticateSMF ($initial_user_data, &$user)
 		{
 			// getID clears out the name set above.
 			$user->setName($username);
-			$user->setEmail($user_settings['email_address']);
-			$user->setRealName($user_settings['real_name']);
+			$user->setEmail($user_settings['emailAddress']);
+			$user->setRealName($user_settings['realName']);
 
 			// Let wiki know that their email has been verified.
-			$user->mEmailAuthenticated = wfTimestampNow(); 
+			$user->mEmailAuthenticated = wfTimestampNow();
 
 			// Finally create the user.
 			$user->addToDatabase();
@@ -239,7 +237,7 @@ function AutoAuthenticateSMF ($initial_user_data, &$user)
 		}
 	}
 
-	// Do we know the SMF member id yet?
+	// Do we know the SMF member ID yet?
 	if (empty($smf_member_id))
 		$smf_member_id = $user->getOption('smf_member_id');
 
@@ -249,7 +247,7 @@ function AutoAuthenticateSMF ($initial_user_data, &$user)
 		// TODO: Log errors if the ids don't match?
 
 		if ($user->isLoggedIn())
-			$user->logout();	
+			$user->logout();
 		return true;
 	}
 
@@ -258,11 +256,11 @@ function AutoAuthenticateSMF ($initial_user_data, &$user)
 
 	if (empty($last_update) || time() > ($last_update + 900))
 	{
-		$user->setEmail($user_settings['email_address']);
-		$user->setRealName($user_settings['real_name']);
+		$user->setEmail($user_settings['emailAddress']);
+		$user->setRealName($user_settings['realName']);
 
 		// We have some sort of group change.
-		$wgAuth->isGroupAllowed($user_settings['member_name'], &$user);
+		$wgAuth->isGroupAllowed($user_settings['memberName'], &$user);
 		$wgAuth->setAdminGroup($user, $smf_member_id);
 
 		// Save!
@@ -380,7 +378,7 @@ function smf_sessionSetup()
 	session_start();
 
 	// Load up the SMF session and set the redirect URL.
-	if(isset($_COOKIE[$smf_settings['cookiename']]))
+	if (isset($_COOKIE[$smf_settings['cookiename']]))
 		session_decode($_COOKIE[$smf_settings['cookiename']]);
 	// No exisiting session, create one
 	else
@@ -417,7 +415,7 @@ class Auth_SMF extends AuthPlugin
 		global $wgSMFLogin, $wgHooks, $wgDefaultUserOptions;
 
 		// Integrate with SMF login / logout?
-		if(isset($wgSMFLogin) && $wgSMFLogin)
+		if (isset($wgSMFLogin) && $wgSMFLogin)
 		{
 			$wgHooks['AutoAuthenticate'][] = 'AutoAuthenticateSMF';
 			$wgHooks['UserLoadFromSession'][] = 'AutoAuthenticateSMF';
@@ -457,9 +455,9 @@ class Auth_SMF extends AuthPlugin
 
 		$username = $this->fixUsername($username);
 		$request = $this->query("
-			SELECT member_name
+			SELECT memberName
 			FROM $smf_settings[db_prefix]members
-			WHERE id_member = '{$smf_member_id}'
+			WHERE ID_MEMBER = '{$smf_member_id}'
 			LIMIT 1");
 
 		list ($user) = mysql_fetch_row($request);
@@ -486,25 +484,25 @@ class Auth_SMF extends AuthPlugin
 	{
 		global $smf_settings, $smf_member_id;
 
-		// No id, you must be unauthorized.
+		// No ID, you must be unauthorized.
 		if ($smf_member_id == 0)
 			return false;
-	
+
 		$username = $this->fixUsername($username);
 		$request = $this->query("
-			SELECT member_name, passwd
+			SELECT memberName, passwd
 			FROM $smf_settings[db_prefix]members
-			WHERE id_member = '{$smf_member_id}'
-				AND is_activated = 1
+			WHERE ID_MEMBER = '{$smf_member_id}'
+				AND isActivated = 1
 			LIMIT 1");
 
-		list($member_name, $passwd) = mysql_fetch_row($request);
+		list ($memberName, $passwd) = mysql_fetch_row($request);
 		mysql_free_result($request);
 
 		$pw = sha1(strtolower($username) . $password);
 
 		// Check for password match, the user is not banned, and the user is allowed.
-		if($pw == $passwd && $this->isNotBanned($smf_member_id) && $this->isGroupAllowed($username))
+		if ($pw == $passwd && $this->isNotBanned($smf_member_id) && $this->isGroupAllowed($username))
 			return true;
 
 		return false;
@@ -541,7 +539,7 @@ class Auth_SMF extends AuthPlugin
 	 * @return bool
 	 * @public
 	 */
-	public function validDomain( $domain)
+	public function validDomain($domain)
 	{
 		return true;
 	}
@@ -571,33 +569,33 @@ class Auth_SMF extends AuthPlugin
 	 * @param User $user
 	 * @public
 	 */
-	public function updateUser( &$user)
+	public function updateUser(&$user)
 	{
 		global $smf_settings, $smf_member_id;
 
-		// No id, you must be unauthorized.
+		// No ID, you must be unauthorized.
 		if ($smf_member_id == 0)
 			return false;
 
 		$username = $this->fixUsername($user->getName());
 		$request = $this->query("
-			SELECT email_address, real_name
+			SELECT emailAddress, realName
 			FROM $smf_settings[db_prefix]members
-			WHERE id_member = '{$smf_member_id}'
+			WHERE ID_MEMBER = '{$smf_member_id}'
 			LIMIT 1");
 
-		while($row = mysql_fetch_assoc($request))
+		while ($row = mysql_fetch_assoc($request))
 		{
-			$user->setRealName($row['real_name']);
-			$user->setEmail($row['email_address']);
+			$user->setRealName($row['realName']);
+			$user->setEmail($row['emailAddress']);
 
 			$this->setAdminGroup($user);
 
-			$user->setOption('smf_last_update', time());		
+			$user->setOption('smf_last_update', time());
 			$user->saveSettings();
 		}
 		mysql_free_result($request);
-	
+
 		return true;
 	}
 
@@ -633,7 +631,7 @@ class Auth_SMF extends AuthPlugin
 		// Only allow password change if not using auto login.
 		// Otherwise we would need a bunch of code to rewrite
 		// the SMF login cookie with the new password.
-		if(isset($wgSMFLogin) && $wgSMFLogin)
+		if (isset($wgSMFLogin) && $wgSMFLogin)
 			return false;
 
 		return true;
@@ -706,11 +704,11 @@ class Auth_SMF extends AuthPlugin
 	 * @param $autocreate bool True if user is being autocreated on login
 	 * @public
 	 */
-	public function initUser( $user, $autocreate = false)
+	public function initUser($user, $autocreate = false)
 	{
 		global $smf_settings, $smf_member_id;
 
-		// No id, you must be unauthorized.
+		// No ID, you must be unauthorized.
 		if ($smf_member_id == 0)
 			return false;
 
@@ -721,24 +719,24 @@ class Auth_SMF extends AuthPlugin
 
 		$username = $this->fixUsername($user->getName());
 		$request = $this->query("
-			SELECT id_member, email_address, real_name
+			SELECT ID_MEMBER, emailAddress, realName
 			FROM $smf_settings[db_prefix]members
-			WHERE id_member = '{$smf_member_id}'
+			WHERE ID_MEMBER = '{$smf_member_id}'
 			LIMIT 1");
 
-		while($row = mysql_fetch_assoc($request))
+		while ($row = mysql_fetch_assoc($request))
 		{
-			$user->setRealName($row[real_name]);
-			$user->setEmail($row[email_address]);
+			$user->setRealName($row[realName]);
+			$user->setEmail($row[emailAddress]);
 
 			// Let wiki know that their email has been verified.
-			$user->mEmailAuthenticated = wfTimestampNow(); 
+			$user->mEmailAuthenticated = wfTimestampNow();
 
 			$this->setAdminGroup($user);
 
 			$user->setOption('smf_last_update', time());
 			$user->saveSettings();
-		}	
+		}
 		mysql_free_result($request);
 
 		return true;
@@ -774,7 +772,7 @@ class Auth_SMF extends AuthPlugin
 		static $fixed_name = '';
 
 		// No space no problem.
-		if(strpos($username, ' ') === false)
+		if (strpos($username, ' ') === false)
 			return $username;
 
 		// We may have done this once already.
@@ -783,14 +781,12 @@ class Auth_SMF extends AuthPlugin
 
 		// Look for either case sorted by date.
 		$request = $this->query("
-			SELECT member_name 
+			SELECT memberName
 			FROM $smf_settings[db_prefix]members
-			WHERE member_name = '{$username}' 
-				OR member_name = '" . strtr($username, array(' ' => '_', '[' => '=', ']' => '"')) . "'
-			ORDER BY date_registered ASC
-			LIMIT 1");
+			WHERE memberName = '{$username}'
+				OR memberName = '" . strtr($username, array(' ' => '_', '[' => '=', ']' => '"')) . "'");
 
-		list($user) = mysql_fetch_row($request);
+		list ($user) = mysql_fetch_row($request);
 		mysql_free_result($request);
 
 		// No result play it safe and return the original.
@@ -804,7 +800,7 @@ class Auth_SMF extends AuthPlugin
 	 *
 	 * @public
 	 */
-	public function isNotBanned($id_member)
+	public function isNotBanned($ID_MEMBER)
 	{
 		global $smf_settings, $smf_member_id;
 
@@ -813,11 +809,11 @@ class Auth_SMF extends AuthPlugin
 			return $_SESSION['smf_iNB'] ? true : false;
 
 		$request = $this->query("
-			SELECT id_ban
+			SELECT ID_BAN
 			FROM $smf_settings[db_prefix]ban_items AS i
 			LEFT JOIN $smf_settings[db_prefix]ban_groups AS g
-				ON (i.id_ban_group = g.id_ban_group)
-			WHERE i.id_member = '{$id_member}'
+				ON (i.ID_BAN_GROUP = g.ID_BAN_GROUP)
+			WHERE i.ID_MEMBER = '{$ID_MEMBER}'
 				AND (g.cannot_post = 1 OR g.cannot_login = 1)");
 
 		$banned = mysql_num_rows($request);
@@ -914,10 +910,10 @@ class Auth_SMF extends AuthPlugin
 		if (!empty($wgSMFSpecialGroups))
 		{
 			// This is done for speed purposes when working with a large array.
-			$temp_groups = explode(',', $user_settings['additional_groups']);
+			$temp_groups = explode(',', $user_settings['additionalGroups']);
 
 			foreach ($wgSMFSpecialGroups as $smf_group => $wiki_group)
-			{ 
+			{
 				if (in_array($smf_group, $temp_groups) && !in_array($wiki_group, $user->getEffectiveGroups()))
 				{
 					$user->addGroup($wiki_group);
@@ -981,7 +977,7 @@ class Auth_SMF extends AuthPlugin
 	{
 		$request = mysql_query($query, $this->conn);
 
-		if(!$request)
+		if (!$request)
 			$this->mysqlerror('Unable to view external table.');
 
 		return $request;
@@ -1020,7 +1016,7 @@ function wfProfileSMFID($user, &$saveOptions)
 {
 	global $ID_MEMBER;
 
-	// Preserve our member id.
+	// Preserve our member ID.
 	if (empty($saveOptions['smf_member_id']))
 		$saveOptions['smf_member_id'] = $user->mOptionOverrides['smf_member_id'];
 
