@@ -1,6 +1,6 @@
-Copyright © 2011 Simple Machines. All rights reserved.
+Copyright © 2011. All rights reserved.
 
- Developed by: Simple Machines Forum Project
+ Developed by: live627 (Based on code by Simple Machines Forum Project)
  Simple Machines
  http://www.simplemachines.org
 

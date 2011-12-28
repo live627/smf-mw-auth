@@ -2,15 +2,16 @@
 /*
 SMF and MediaWiki Integration
 =============================
+Author: live627 (live627 at gmail dot com)
 Author: SleePy (sleepy at simplemachines dot org)
 Original Author: Ryan Wagoner (rswagoner at gmail dot com)
 Version: 1.13
 
 Copyright
 =============================
-Copyright © 2011 Simple Machines. All rights reserved.
+Copyright © 2011. All rights reserved.
 
- Developed by: Simple Machines Forum Project
+ Developed by: live627 (Based on code by Simple Machines Forum Project)
  Simple Machines
  http://www.simplemachines.org
 

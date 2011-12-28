@@ -1,5 +1,6 @@
 SMF and MediaWiki Integration
 =============================
+Author: live627 (live627 at gmail dot com)
 Author: SleePy (sleepy at simplemachines dot org)
 Original Author: Ryan Wagoner (rswagoner at gmail dot com)
 Version: 1.13
@@ -18,13 +19,13 @@ $wgGroupPermissions['*']['edit'] = false; // MediaWiki Setting
 #$wgCachePages = false;
 
 # SMF Authentication
-# To get started you only need to configure wgSMFPath. 
+# To get started you only need to configure wgSMFPath.
 # The rest of the settings are optional for advanced features.
 
 # Relative path to the forum directory from the wiki
 # Do not put a trailing /
 # Example: /public_html/forum and /public_html/wiki -> ../forum
-$wgSMFPath = "../forum"; 
+$wgSMFPath = "../forum";
 
 # Use SMF's login system to automatically log you in/out of the wiki
 # This works best if you are using SMF database sessions (default).
