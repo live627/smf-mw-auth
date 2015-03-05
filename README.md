@@ -10,6 +10,7 @@ encouter an issue be sure to read the known issues below.
 
 Add to LocalSettings.php
 ========================
+```
 # This requires a user be logged into the wiki to make changes.
 $wgGroupPermissions['*']['edit'] = false; // MediaWiki Setting
 
@@ -61,4 +62,4 @@ define('SMF_IN_WIKI', true);
 # Load up the extension
 require_once "$IP/extensions/Auth_SMF.php";
 $wgAuth = new Auth_SMF();
-
+```
